@@ -1,0 +1,65 @@
+package usecase
+
+import (
+	"context"
+	"fmt"
+	
+	"{{ .ModulePath }}/internal/domain"
+)
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }}UseCase struct {
+	{{- range .Dependencies }}
+	{{ .Name | ToLower }}Repo domain.{{ .Name }}Repository
+	{{- end }}
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+func New{{ .Name }}UseCase(
+	{{- range $i, $d := .Dependencies }}
+	{{- if $i }},{{ end }}
+	{{ $d.Name | ToLower }}Repo domain.{{ $d.Name }}Repository
+	{{- end }}
+) *{{ .Name }}UseCase {
+	return &{{ .Name }}UseCase{
+	 {{- range .Dependencies }}
+	 {{ .Name | ToLower }}Repo: {{ .Name | ToLower }}Repo,
+	 {{- end }}
+	}
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+func (uc *{{ .Name }}UseCase) Execute(ctx context.Context, input *{{ .Name }}Input) (*{{ .Name }}Output, error) {
+	
+	
+	{{- if .Example }}
+	
+	{{ .Example }}
+	{{- end }}
+	
+	return nil, fmt.Errorf("not implemented")
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }}Input struct {
+	{{- range .InputFields }}
+	{{ .Name }}  {{ .Type }}  `json:"{{ .JsonTag }}"`
+	{{- end }}
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }}Output struct {
+	{{- range .OutputFields }}
+	{{ .Name }}  {{ .Type }}  `json:"{{ .JsonTag }}"`
+	{{- end }}
+}

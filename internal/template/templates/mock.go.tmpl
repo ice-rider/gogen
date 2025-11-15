@@ -1,0 +1,46 @@
+package mocks
+
+import (
+	"context"
+
+	"github.com/stretchr/testify/mock"
+	"{{ .ModulePath }}/internal/domain"
+)
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }}RepositoryMock struct {
+	mock.Mock
+}
+
+func (m *{{ .Name }}RepositoryMock) Create(ctx context.Context, entity *domain.{{ .Entity }}) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *{{ .Name }}RepositoryMock) GetByID(ctx context.Context, id string) (*domain.{{ .Entity }}, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.{{ .Entity }}), args.Error(1)
+}
+
+func (m *{{ .Name }}RepositoryMock) Update(ctx context.Context, entity *domain.{{ .Entity }}) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *{{ .Name }}RepositoryMock) Delete(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *{{ .Name }}RepositoryMock) List(ctx context.Context, limit, offset int) ([]*domain.{{ .Entity }}, error) {
+	args := m.Called(ctx, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*domain.{{ .Entity }}), args.Error(1)
+}

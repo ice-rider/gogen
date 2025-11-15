@@ -1,0 +1,56 @@
+version: "1.0"
+
+# Пути относительно корня проекта
+paths:
+  domain: "internal/domain"
+  repository: "internal/repository"
+  usecase: "internal/usecase"
+  handler: "internal/handler"
+  mocks: "internal/mocks"
+  tests: "tests"
+
+# Правила именования
+naming:
+  style: "pascal_case"  # pascal_case | snake_case | camel_case
+  suffixes:
+    repository: "Repository"
+    usecase: "UseCase"
+    handler: "Handler"
+    mock: "Mock"
+  prefixes:
+    interface: ""  # пустая строка = без префикса
+
+# Шаблоны (путь относительно папки templates/)
+templates:
+  entity: "entity.go.tmpl"
+  repository_interface: "repository_interface.go.tmpl"
+  repository_impl: "repository_impl.go.tmpl"
+  usecase: "usecase.go.tmpl"
+  handler: "handler.go.tmpl"
+  mock: "mock.go.tmpl"
+  test_entity: "test_entity.go.tmpl"
+  test_repository: "test_repository.go.tmpl"
+  test_usecase: "test_usecase.go.tmpl"
+
+# Настройки генерации
+generation:
+  add_comments: true
+  add_examples: false
+  separate_interfaces: true  # интерфейсы в отдельных файлах
+  use_pointers: true
+  error_handling: "wrap"  # wrap | return | panic
+
+# Зависимости (какие пакеты импортировать по умолчанию)
+imports:
+  entity:
+    - "time"
+    - "github.com/google/uuid"
+  repository:
+    - "context"
+    - "database/sql"
+  usecase:
+    - "context"
+  test:
+    - "testing"
+    - "github.com/stretchr/testify/assert"
+    - "github.com/stretchr/testify/mock"

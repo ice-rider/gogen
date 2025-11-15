@@ -1,0 +1,30 @@
+package domain
+
+import (
+	"context"
+)
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }}Repository interface {
+	
+	Create(ctx context.Context, entity *{{ .Entity }}) error
+
+	
+	GetByID(ctx context.Context, id string) (*{{ .Entity }}, error)
+
+	
+	Update(ctx context.Context, entity *{{ .Entity }}) error
+
+	
+	Delete(ctx context.Context, id string) error
+
+	
+	List(ctx context.Context, limit, offset int) ([]*{{ .Entity }}, error)
+
+	{{- range .CustomMethods }}
+	
+	{{ .Name }}(ctx context.Context{{- range .Params }}, {{ .Name }} {{ .Type }}{{- end }}) {{ .Return }}
+	{{- end }}
+}

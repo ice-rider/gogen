@@ -1,0 +1,47 @@
+package domain
+
+import (
+	"time"
+	"github.com/google/uuid"
+)
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }} struct {
+	ID        uuid.UUID `json:"id" db:"id"
+	{{- range .Fields }}
+	{{ .Name }}  {{ .Type }} `json:"{{ .JsonTag }}" db:"{{ .DbTag }}"
+	{{- end }}
+
+	CreatedAt time.Time `json:"created_at" db:"created_at"
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+func New{{ .Name }}({{- range $i, $f := .Fields }}{{if $i}}, {{end}}{{ $f.Name | ToLower }} {{ $f.Type }}{{- end }}) *{{ .Name }} {
+	return &{{ .Name }}{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		{{- range .Fields }}
+		{{ .Name }}: {{ .Name | ToLower }},
+		{{- end }}
+	}
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+func (e *{{ .Name }}) Validate() error {
+	{{- range .Fields }}
+	{{- if .Required }}
+	if e.{{ .Name }} == {{ .ZeroValue }} {
+		return fmt.Errorf("{{ .Name }} is required")
+	}
+	{{- end }}
+	{{- end }}
+	return nil
+}

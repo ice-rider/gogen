@@ -1,0 +1,146 @@
+package repository
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+
+	"{{ .ModulePath }}/internal/domain"
+)
+
+{{- if .AddComments }}
+
+{{- end }}
+type {{ .Name }}RepositoryImpl struct {
+	db *sql.DB
+}
+
+{{- if .AddComments }}
+
+{{- end }}
+func New{{ .Name }}Repository(db *sql.DB) domain.{{ .Name }}Repository {
+	return &{{ .Name }}RepositoryImpl{db: db}
+}
+
+func (r *{{ .Name }}RepositoryImpl) Create(ctx context.Context, entity *domain.{{ .Entity }}) error {
+	query := `
+	 INSERT INTO {{ .TableName }} (id, created_at, updated_at{{- range .Fields }}, {{ .DbTag }}{{- end }})
+	 VALUES ($1, $2, $3{{- range $i, $f := .Fields }}, ${{ add $i 4 }}{{- end }})`
+
+	_, err := r.db.ExecContext(ctx, query,
+		entity.ID,
+		entity.CreatedAt,
+		entity.UpdatedAt,
+		{{- range .Fields }}
+		entity.{{ .Name }},
+		{{- end }}
+	)
+	
+	if err != nil {
+		return fmt.Errorf("failed to create {{ .Entity }}: %w", err)
+	}
+
+	return nil
+}
+
+func (r *{{ .Name }}RepositoryImpl) GetByID(ctx context.Context, id string) (*domain.{{ .Entity }}, error) {
+	query := 
+	`SELECT id, created_at, updated_at{{- range .Fields }}, {{ .DbTag }}{{- end }}
+	 FROM {{ .TableName }}
+	 WHERE id = $1`
+	
+	entity := &domain.{{ .Entity }}{}
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&entity.ID,
+		&entity.CreatedAt,
+		&entity.UpdatedAt,
+		{{- range .Fields }}
+		&entity.{{ .Name }},
+		{{- end }}
+	)
+	
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("{{ .Entity }} not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get {{ .Entity }}: %w", err)
+	}
+
+	return entity, nil
+}
+
+func (r *{{ .Name }}RepositoryImpl) Update(ctx context.Context, entity *domain.{{ .Entity }}) error {
+	query := 
+	`UPDATE {{ .TableName }}
+	 SET updated_at = $2{{- range $i, $f := .Fields }}, {{ $f.DbTag }} = ${{ add $i 3 }}{{- end }}
+	 WHERE id = $1`
+	
+	
+	result, err := r.db.ExecContext(ctx, query,
+		entity.ID,
+		entity.UpdatedAt,
+		{{- range .Fields }}
+		entity.{{ .Name }},
+		{{- end }}
+	)
+	
+	if err != nil {
+		return fmt.Errorf("failed to update {{ .Entity }}: %w", err)
+	}
+	
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("{{ .Entity }} not found")
+	}
+	
+	return nil
+}
+
+func (r *{{ .Name }}RepositoryImpl) Delete(ctx context.Context, id string) error {
+	query := DELETE FROM {{ .TableName }} WHERE id = $1
+	
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete {{ .Entity }}: %w", err)
+	}
+	
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("{{ .Entity }} not found")
+	}
+	
+	return nil
+}
+
+func (r *{{ .Name }}RepositoryImpl) List(ctx context.Context, limit, offset int) ([]*domain.{{ .Entity }}, error) {
+	query :=
+	   `SELECT id, created_at, updated_at{{- range .Fields }}, {{ .DbTag }}{{- end }}
+		FROM {{ .TableName }}
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2`
+	
+	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list {{ .Entity }}: %w", err)
+	}
+	defer rows.Close()
+	
+	var entities []*domain.{{ .Entity }}
+	for rows.Next() {
+		entity := &domain.{{ .Entity }}{}
+		err := rows.Scan(
+			&entity.ID,
+			&entity.CreatedAt,
+			&entity.UpdatedAt,
+			{{- range .Fields }}
+			&entity.{{ .Name }},
+			{{- end }}
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan {{ .Entity }}: %w", err)
+		}
+		entities = append(entities, entity)
+	}
+	
+	return entities, nil
+}
